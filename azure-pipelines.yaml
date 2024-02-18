@@ -1,0 +1,27 @@
+name: $(TeamProject)_$(Build.DefinitionName)_$(date:yyyyMMdd)$(Hours)_$(rev:.r)
+
+trigger:
+  - main
+  - test
+
+variables:
+  - name: isMainBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  - name: isTestBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/test')]
+
+stages:
+  - stage: test
+    displayName: 'Test'
+    condition: and(eq(variables['isMainBranch'], 'false'),eq(variables['isTestBranch'], 'true'))
+    variables:
+      - group: DATABRICKS-TEST
+    jobs:
+      - template: templates/job-databricks.yml
+  - stage: prod
+    displayName: 'Prod'
+    condition: and(eq(variables['isMainBranch'], 'true'),eq(variables['isTestBranch'], 'false'))
+    variables:
+      - group: DATABRICKS-PROD
+    jobs:
+      - template: templates/job-databricks.yml

@@ -1,0 +1,35 @@
+jobs:
+  - job: DeployNotebooks
+    displayName: Deploy Notebooks
+    steps:
+      - task: UsePythonVersion@0
+          inputs:
+            versionSpec: '3.9'
+            addToPath: false
+            architecture: 'x64'
+      - script: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          echo -e "${GREEN}CONFIGURING DATABRICKS CLI..."
+          cd 
+          echo '['"$(DBW-PROFILE)"']' >> .databrickscfg
+          echo 'host = '"$(DBW-HOST)" >> .databrickscfg
+          echo 'token = '"$(DBW-SECRET)" >> .databrickscfg
+          export DATABRICKS_CONFIG_FILE=~/.databrickscfg
+          echo -e "${GREEN}INSTALLING DATABRICKS CLI..."
+          pip install databricks-cli
+        displayName: Login to Databricks
+      - script: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          echo -e "${GREEN}VALIDATING CONTENT..."
+          files_array=$(databricks workspace list --absolute $(NOTEBOOK-PATH) --profile $(DBW-PROFILE)) 
+          for item in $files_array; do 
+              output=$(databricks workspace delete -r $item --profile $(DBW-PROFILE));  
+              if [ $? -eq 0 ]; then
+                  echo -e "${RED}$item Deleted"
+              fi
+          done;
+          echo -e "${GREEN}IMPORTING NOTEBOOKS..."
+          databricks workspace import_dir -o --profile $(DBW-PROFILE)  $(System.DefaultWorkingDirectory)$(REPOSITORY-FOLDERNAME)   $(NOTEBOOK-PATH)
+        displayName: Deploy Notebooks to Databricks $(ENVIRONMENT)
