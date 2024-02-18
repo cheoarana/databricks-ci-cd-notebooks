@@ -1,0 +1,18 @@
+jobs:
+  - job: DeployNotebooks
+    displayName: Deploy Notebooks
+    steps:
+      - script: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          echo -e "${GREEN}VALIDATING CONTENT..."
+          files_array=$(databricks workspace list --absolute $(NOTEBOOK-PATH) --profile $(DBW-PROFILE)) 
+          for item in $files_array; do 
+              output=$(databricks workspace delete -r $item --profile $(DBW-PROFILE));  
+              if [ $? -eq 0 ]; then
+                  echo -e "${RED}$item Deleted"
+              fi
+          done;
+          echo -e "${GREEN}IMPORTING NOTEBOOKS..."
+          databricks workspace import_dir -o --profile $(DBW-PROFILE)  $(System.DefaultWorkingDirectory)$(REPOSITORY-FOLDERNAME)   $(NOTEBOOK-PATH)
+        displayName: Deploy Notebooks to Databricks $(ENVIRONMENT)
