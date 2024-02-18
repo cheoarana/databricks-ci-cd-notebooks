@@ -2,20 +2,18 @@ name: $(TeamProject)_$(Build.DefinitionName)_$(date:yyyyMMdd)$(Hours)_$(rev:.r)
 
 trigger:
   - main
-  - develop
+  - test
 
 variables:
   - name: isMainBranch
     value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-  - name: isDevelopBranch
-    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
+  - name: isTestBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/test')]
 
 stages:
   - stage: Configuration Databricks
     variables:
-      - group: Databricks
-      - name: ENVIRONTMENT
-        value: $(ENVIRONTMENT)
+      - group: DATABRICKS-COMMON
     jobs:
       - job: Configuration
         displayName: 'Configuration Databricks'
@@ -28,3 +26,19 @@ stages:
               addToPath: false
               architecture: 'x64'
       - template: templates/config-databricks.yml
+  - stage: test
+    displayName: 'Test'
+    dependsOn: Configuration Databricks
+    condition: and(eq(variables['isMainBranch'], 'false'),eq(variables['isTestBranch'], 'true'))
+    variables:
+      - group: DATABRICKS-TEST
+    jobs:
+      - template: templates/job-databricks.yml
+  - stage: prod
+    displayName: 'Prod'
+    dependsOn: Configuration Databricks
+    condition: and(eq(variables['isMainBranch'], 'true'),eq(variables['isTestBranch'], 'false'))
+    variables:
+      - group: DATABRICKS-PROD
+    jobs:
+      - template: templates/job-databricks.yml
