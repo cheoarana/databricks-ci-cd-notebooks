@@ -1,0 +1,30 @@
+name: $(TeamProject)_$(Build.DefinitionName)_$(date:yyyyMMdd)$(Hours)_$(rev:.r)
+
+trigger:
+  - main
+  - develop
+
+variables:
+  - name: isMainBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  - name: isDevelopBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
+
+stages:
+  - stage: Configuration Databricks
+    variables:
+      - group: Databricks
+      - name: ENVIRONTMENT
+        value: $(ENVIRONTMENT)
+    jobs:
+      - job: Configuration
+        displayName: 'Configuration Databricks'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.9'
+              addToPath: false
+              architecture: 'x64'
+      - template: templates/config-databricks.yml
