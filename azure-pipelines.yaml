@@ -11,24 +11,8 @@ variables:
     value: $[eq(variables['Build.SourceBranch'], 'refs/heads/test')]
 
 stages:
-  - stage: Configuration Databricks
-    variables:
-      - group: DATABRICKS-COMMON
-    jobs:
-      - job: Configuration
-        displayName: 'Configuration Databricks'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.9'
-              addToPath: false
-              architecture: 'x64'
-      - template: templates/config-databricks.yml
   - stage: test
     displayName: 'Test'
-    dependsOn: Configuration Databricks
     condition: and(eq(variables['isMainBranch'], 'false'),eq(variables['isTestBranch'], 'true'))
     variables:
       - group: DATABRICKS-TEST
@@ -36,7 +20,6 @@ stages:
       - template: templates/job-databricks.yml
   - stage: prod
     displayName: 'Prod'
-    dependsOn: Configuration Databricks
     condition: and(eq(variables['isMainBranch'], 'true'),eq(variables['isTestBranch'], 'false'))
     variables:
       - group: DATABRICKS-PROD
