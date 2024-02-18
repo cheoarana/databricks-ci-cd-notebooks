@@ -1,0 +1,14 @@
+steps:
+  - checkout: self
+  - script: |
+      GREEN='\033[0;32m'
+      RED='\033[0;31m'
+      echo -e "${GREEN}CONFIGURING DATABRICKS CLI..."
+      cd 
+      echo '['"$(DBW-PROFILE)"']' >> .databrickscfg
+      echo 'host = '"$(DBW-HOST)" >> .databrickscfg
+      echo 'token = '"$(DBW-SECRET)" >> .databrickscfg
+      export DATABRICKS_CONFIG_FILE=~/.databrickscfg
+      echo -e "${GREEN}INSTALLING DATABRICKS CLI..."
+      pip install databricks-cli
+    displayName: Login to Databricks
